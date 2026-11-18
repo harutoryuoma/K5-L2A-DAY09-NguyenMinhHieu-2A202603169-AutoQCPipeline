@@ -16,9 +16,73 @@ Tỉ lệ cảnh báo = (số ẢNH khác nhau có ≥ 1 cảnh báo) / (tổng 
 
 Trả về dict: decision, n_errors, n_warn_images, n_images, warn_ratio (làm tròn 4 chữ số), reasons (list[str], giải thích bằng tiếng Việt, có số liệu).
 """
-from ..common import ERROR, WARN  # noqa: F401
+
+from ..common import ERROR, WARN
 
 
 def decide(issues, image_stems, cfg, reviewed=frozenset()):
-    # TODO
-    raise NotImplementedError("gate chưa làm")
+    """Quyết định Release / Hold / Rework cho dataset."""
+
+    # Danh sách ảnh thực sự thuộc dataset
+    stems = set(image_stems)
+    reviewed = set(reviewed)
+
+    n_images = len(stems)
+
+    # Lỗi bắt buộc luôn phải xử lý,
+    # kể cả khi ảnh đã được reviewed.
+    n_errors = sum(
+        1 for issue in issues
+        if issue.severity == ERROR
+    )
+
+    # Đếm số ảnh khác nhau còn cảnh báo
+    warn_images = {
+        issue.image
+        for issue in issues
+        if issue.severity == WARN
+        and issue.image in stems
+        and issue.image not in reviewed
+    }
+
+    n_warn_images = len(warn_images)
+
+    # Tránh chia cho 0 nếu dataset rỗng
+    warn_ratio = (
+        n_warn_images / n_images
+        if n_images > 0 else 0.0
+    )
+
+    threshold = cfg["gate"]["warn_ratio_hold"]
+
+    if n_errors > 0:
+        decision = "Rework"
+        reasons = [
+            f"Còn {n_errors} lỗi bắt buộc cần sửa."
+        ]
+
+    elif warn_ratio >= threshold:
+        decision = "Hold"
+        reasons = [
+            f"Có {n_warn_images}/{n_images} ảnh "
+            f"còn cảnh báo ({warn_ratio:.2%}), "
+            f"đạt hoặc vượt ngưỡng {threshold:.2%}."
+        ]
+
+    else:
+        decision = "Release"
+        reasons = [
+            f"Không còn lỗi bắt buộc. "
+            f"Có {n_warn_images}/{n_images} ảnh "
+            f"còn cảnh báo ({warn_ratio:.2%}), "
+            f"dưới ngưỡng {threshold:.2%}."
+        ]
+
+    return {
+        "decision": decision,
+        "n_errors": n_errors,
+        "n_warn_images": n_warn_images,
+        "n_images": n_images,
+        "warn_ratio": round(warn_ratio, 4),
+        "reasons": reasons,
+    }

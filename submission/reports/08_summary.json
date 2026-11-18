@@ -1,0 +1,18 @@
+{
+  "verdict": {
+    "decision": "Hold",
+    "n_errors": 0,
+    "n_warn_images": 34,
+    "n_images": 193,
+    "warn_ratio": 0.1762,
+    "reasons": [
+      "Có 34/193 ảnh còn cảnh báo (17.62%), đạt hoặc vượt ngưỡng 10.00%."
+    ]
+  },
+  "reviewed": 80,
+  "budget": 80,
+  "seconds": 4.7,
+  "exported": "C:\\Users\\harut\\Downloads\\K5-L2A-DAY09-NguyenMinhHieu-2A202603169-AutoQCPipeline\\submission\\export\\clean_v1",
+  "config_sha1": "2cf7461869c995ef469ec9195fceaf38d7663cab",
+  "review_sim_sha1": "7988ca22827f780a7043a2300490e679a1697154"
+}
